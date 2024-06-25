@@ -1,21 +1,71 @@
-/*
- * Skomentuj i zapisz wartość
- * const contactsPath = ;
- */
+import { promises as fs } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import { v4 as uuidv4 } from "uuid";
 
-// TODO: udokumentuj każdą funkcję
-function listContacts() {
-  // ...twój kod
-}
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const contactsPath = join(__dirname, "/db/contacts.json");
 
-function getContactById(contactId) {
-  // ...twój kod
-}
+const findContacts = async () => {
+  try {
+    const contactsData = await fs.readFile(contactsPath);
+    const contacts = JSON.parse(contactsData);
+    return contacts;
+  } catch (err) {
+    console.log(err.message);
+  }
+};
 
-function removeContact(contactId) {
-  // ...twój kod
-}
+export const listContacts = async () => {
+  try {
+    const data = await fs.readFile(contactsPath);
+    return data.toString();
+  } catch (err) {
+    console.log(err.message);
+  }
+};
 
-function addContact(name, email, phone) {
-  // ...twój kod
-}
+export const getContactById = async (contactId) => {
+  try {
+    const contacts = await findContacts(contactId);
+    const contact = contacts.find((contact) => contact.id === contactId);
+
+    if (contact) {
+      return contact;
+    } else {
+      console.log("Contact not found");
+    }
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+export const removeContact = async (contactId) => {
+  try {
+    const contacts = await findContacts();
+    const updatedContacts = contacts.filter(
+      (contact) => contact.id !== contactId
+    );
+
+    await fs.writeFile(contactsPath, JSON.stringify(updatedContacts, null, 2));
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+export const addContact = async (name, email, phone) => {
+  try {
+    const contacts = await findContacts();
+    const newContact = {
+      id: uuidv4(),
+      name,
+      email,
+      phone,
+    };
+    contacts.push(newContact);
+
+    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+  } catch (err) {
+    console.log(err.message);
+  }
+};
